@@ -14,7 +14,7 @@
   "author": "Tino Ruge",
   "license": "MIT",
   "dependencies": {
-    "se-bus": "^0.1.1",
+    "se-bus": "^0.1.2",
     "ws": "^8.14.2"
   },
   "devDependencies": {
