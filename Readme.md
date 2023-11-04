@@ -4,7 +4,7 @@ Dropin bridge for [se-bus](https://www.npmjs.com/package/se-bus) to pass events 
 
 ## Things to be aware of
 This project is still alpha.  
-Everything SHOULD work already, but it not fully covered by tests.  
+Everything SHOULD work already, but is not fully covered by tests yet.  
 It's also not used live by me right now.
 
 Passing events from server to clients and the other way might involve security risks. 
@@ -138,7 +138,8 @@ on('file.created', seBusServer.transfer('file.created'));
 
 // You can also decide to broadcase an event only once to the clients.
 once('server.restart', seBusServer.transfer('server.restart'));
-// The first time server.restart will be emitted then will be broadcastet to all clients; afterwards clients won't receive that event anymore
+// The first time server.restart will be emitted then will be broadcastet to all clients;
+// afterwards clients won't receive that event anymore
 
 // Emitting events to the clients is now identical to emitting in server side only
 emit('file.created', { name: "test.txt" })
