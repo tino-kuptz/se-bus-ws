@@ -1,5 +1,5 @@
-import SEBusServer from "./lib/SEBusServer.js";
-import SEBusClient from "./lib/SEBusClient.js";
+var SEBusServer = null;
+var SEBusClient = null;
 
 /**
  * Bind se-bus-ws to an httpServer or httpsServer instance
@@ -9,6 +9,11 @@ import SEBusClient from "./lib/SEBusClient.js";
  * @returns {Promise<SEBusServer>}
  */
 const bindServer = async (httpServerInstance, pathname) => {
+    if (SEBusServer === null) {
+        SEBusServer = await import('./lib/SEBusServer.js');
+        SEBusServer = SEBusServer.default;
+    }
+
     const seBusServer = new SEBusServer(httpServerInstance);
     await seBusServer.setupServer(pathname);
     return seBusServer;
@@ -20,6 +25,11 @@ const bindServer = async (httpServerInstance, pathname) => {
  * @returns {Promise<SEBusClient>}
  */
 const bindClient = async (wsURI) => {
+    if (SEBusClient === null) {
+        SEBusClient = await import('./lib/SEBusClient.js');
+        SEBusClient = SEBusClient.default;
+    }
+
     const seBusClient = new SEBusClient(wsURI);
     await seBusClient.connect();
     return seBusClient;
