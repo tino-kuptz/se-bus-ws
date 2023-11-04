@@ -1,5 +1,5 @@
 {
-  "name": "sw-bus-ws",
+  "name": "se-bus-ws",
   "version": "0.1.0",
   "description": "Websocket bridge for se-bus",
   "main": "index.js",
