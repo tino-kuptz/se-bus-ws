@@ -1,7 +1,82 @@
 # se-bus-ws
 Dropin bridge for [se-bus](https://www.npmjs.com/package/se-bus) to pass events events from server to client and vice versa.
 
-## Usage (server)
+
+## Things to be aware of
+This project is still alpha.  
+Everything SHOULD work already, but it not fully covered by tests.  
+It's also not used live by me right now.
+
+Passing events from server to clients and the other way might involve security risks. 
+This bridge tries to reduce the risk as much as possible by **requiring** to explicitly allow events to pass it on **both sides**, the server and the client.  
+You can even filter on a per-event base if you really want to pass that event.  
+I think this might even be the biggest catch of this bridge.
+
+You should watch out to not create a loop using this bridge.  
+If a client emits an event that should be passed to the server, and the server emits the same event to the client, you might see your datacenter burning soon.  
+This addin does not detect event loops, nor does it filter them.
+
+## Quick usage
+
+### Server
+The se-bus-ws server needs to be bond on a httpServer.  
+After creating the server you can configure it to pass events, and to allow events from clients.
+```js
+// Imports
+import { bindServer } from 'se-bus-ws';
+import { emit, on } from 'se-bus';
+import { createServer } from 'http';
+
+(async () => {
+    // Setup a http server
+    const httpServer = createServer();
+    // Bind our bridge on it
+    const seBusServer = await bindServer(httpServer);
+
+    // Pass "tick"-events emitted on the server to the client
+    on('tick', seBusServer.transfer('tick')); 
+    // Allow the client to send "tock"-events to the server
+    seBusServer.listen('tock');
+
+    // This will be forwarded to the client
+    emit('tick', { });
+
+    on('tock', (data) => {
+        // This can be executed by the client
+    });
+
+    // start http server
+    server.listen(8080);
+})();
+```
+
+### Client
+The clients needs the information on where the server is listening at.  
+Afterwards it can be configured similar on how the server is configured.
+```js
+import { bindClient } from 'se-bus-ws';
+import { on, emit } from 'se-bus';
+
+(async () => {
+    const seBusClient = await bindClient("ws://localhost/path");
+
+    // Pass "tock" events on the client to the server
+    on('tock', seBusClient.transfer('tock'));
+
+    // Allow the server to send "tick"-events to us
+    seBusClient.listen('tick');
+
+    emit('tock', { }); // This will also be send to the server
+
+    on('tick', (data) => {
+        // This callback can be executed by the server
+    });
+})();
+```
+
+
+
+## Detailed usage (server)
 This dropin needs to be bond on a http(s)Server.  
 It does not need to use it's own instance/port. It can also be bond on subdirectories.
 
@@ -46,7 +121,7 @@ import { createServer } from 'http';
 })();
 ```
 
-## Passing events from server to client
+### Passing events from server to client
 Events that should be passed from the server to the client needs to be registered.
 This will be done via `se-bus` and the just created server insance
 ```js
@@ -95,7 +170,7 @@ emit('file.created', { name: "test.txt" })
 // [see above on how to start the server]
 ```
 
-## Receiving events from a client on a server side
+### Receiving events from a client on a server side
 In order to allow clients to send events to the server they need to be authenticated. They always are, by default, see below on how to change this behaviour.  
 You also need to allow specific events to be broadcasted:
 ```js
@@ -136,7 +211,7 @@ on('client.event.name', (data) => {
 
 
 
-## Authentification
+### Authentification
 You can add your own auth handler in order to allow or disallow connections made to your server.  
 Please be aware that the authentification will be handled after the websocket upgrade; but in most cases this shouldn't matter.
 ```js
@@ -154,3 +229,72 @@ server.listen(8080);
 ```
 In case you set `on.connect`, the client will not receive any events or is able to send any event before that function returns true.  
 The socket is still kept alive meanwhile.
+
+## Detailed usage (Client)
+The client behaves similar to the server.
+
+### Constructing
+Instead of creating a http server you simply connect to the server:
+```js
+import { bindClient } from 'se-bus-ws';
+
+(async () => {
+    const seBusClient = await bindClient("ws://localhost/path");
+})();
+```
+
+### Allowing events to be passed to the server
+In order to allow events to be passed to the server you need to listen to them using seBusClient:
+```js
+import { bindClient } from 'se-bus-ws';
+import { on, emit } from 'se-bus';
+
+(async () => {
+    const seBusClient = await bindClient("ws://localhost/path");
+
+    on('event.name', seBusClient.transfer('server.event.name'));
+
+    emit('event.name', { }); // Will be emitted on the server as "server.event.name"
+})();
+```
+
+Similar to the server component of this module you can also filter events the clients should forward to the server:
+```js
+import { bindClient } from 'se-bus-ws';
+import { on, emit } from 'se-bus';
+
+(async () => {
+    const seBusClient = await bindClient("ws://localhost/path");
+
+    on('event.name', seBusClient.transfer('server.event.name', async (eventName, eventData) => {
+        return eventData.test == true;
+    }));
+
+    emit('event.name', { test: true }); // Will be emitted on the server as "server.event.name"
+    emit('event.name', { test: false }); // Will NOT be forwarded to the server
+})();
+```
+
+### Listen to events
+Events send from the server to the client needs to be accepted by the client.  
+Here, the behaviour is also pretty similar to the server side:
+```js
+// [see above for imports and how to bind to the se-bus-ws server]
+const seBusClient = await bindClient("ws://localhost/path");
+
+// Allow the server to emit the every.event.name on this client
+seBusClient.listen('every.event.name');
+
+// Allow the server to emit event.name only on the client, if it's event data "test" is set to true
+seBusClient.listen('event.name', async (eventName, eventData) => {
+    if(typeof eventData.test != true) return false;
+    return true;
+});
+
+on('event.name', (data) => {
+    // This event can now also be triggered by the server, as long as
+    // data.test is set to true
+});
+
+// When you emit('event.name', { test: true }) on the server now it'll be send to all clients
+```
