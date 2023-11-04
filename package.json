@@ -1,0 +1,24 @@
+{
+  "name": "sw-bus-ws",
+  "version": "0.1.0",
+  "description": "Websocket bridge for se-bus",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/se-bus/se-bus-ws.git"
+  },
+  "author": "Tino Ruge",
+  "license": "MIT",
+  "dependencies": {
+    "se-bus": "^0.1.1",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0"
+  }
+}
