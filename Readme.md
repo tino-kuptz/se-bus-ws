@@ -5,7 +5,8 @@ Dropin bridge for [se-bus](https://www.npmjs.com/package/se-bus) to pass events 
 ## Things to be aware of
 This project is still alpha.  
 Everything SHOULD work already, but is not fully covered by tests yet.  
-It's also not used live by me right now.
+It's also not used live by me right now.  
+Also, there is no error catching, no reconnecting, etc. - those are things to come in the close futire.
 
 Passing events from server to clients and the other way might involve security risks. 
 This bridge tries to reduce the risk as much as possible by **requiring** to explicitly allow events to pass it on **both sides**, the server and the client.  
@@ -15,6 +16,9 @@ I think this might even be the biggest catch of this bridge.
 You should watch out to not create a loop using this bridge.  
 If a client emits an event that should be passed to the server, and the server emits the same event to the client, you might see your datacenter burning soon.  
 This addin does not detect event loops, nor does it filter them.
+
+## Demo
+There is a working demo [at gitlab](https://gitlab.com/se-bus/se-bus-example-client-server-application/). Its demonstrating the usage of [se-bus](https://www.npmjs.com/package/se-bus) and [se-bus-ws](https://www.npmjs.com/package/se-bus-ws) by hosting a small web application that clients can use to connect in real time.
 
 ## Quick usage
 
