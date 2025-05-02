@@ -1,4 +1,10 @@
 # se-bus-ws
+
+> [!CAUTION]
+> This project has move to github
+> See [tino-kuptz/se-bus-ws](https://github.com/tino-kuptz/se-bus-ws)
+
+
 Dropin bridge for [se-bus](https://www.npmjs.com/package/se-bus) to pass events events from server to client and vice versa.
 
 
